@@ -12,6 +12,7 @@
  */
 
 #import "Util.h"
+#import "CHCopying.h"
 
 /**
  @file CHSortedSet.h
@@ -54,7 +55,7 @@ typedef enum {
  @todo Consider adding other possible sorted set implementations, such as <a href="http://en.wikipedia.org/wiki/Skip_list">skip lists</a>, <a href="http://www.concentric.net/~Ttwang/tech/sorthash.htm">sorted linear hash sets</a>, and <a href="http://code.activestate.com/recipes/230113/">sorted lists</a>.
 
  */
-@protocol CHSortedSet <NSObject, NSCoding, NSCopying, NSFastEnumeration>
+@protocol CHSortedSet <NSObject, NSCoding, CHCopying, NSFastEnumeration>
 
 /**
  Initialize a sorted set with no objects.

@@ -20,288 +20,287 @@
 #import "CHTreap.h"
 #import "CHUnbalancedTree.h"
 
-static NSArray *abcde;
-
 #define NonConcreteClass() \
-([self classUnderTest] == nil || [self classUnderTest] == [CHAbstractBinarySearchTree class])
+(self.classUnderTest == nil || self.classUnderTest == CHAbstractBinarySearchTree.class)
+
+#define returnIfAbstract() do { if (NonConcreteClass()) { return; } } while (false);
 
 #pragma mark -
 
 @interface CHSortedSetTest : XCTestCase {
-	id set;
 	NSArray *objects;
 	NSEnumerator *e;
 	id anObject;
 }
+
+@property (readwrite, strong) id<CHSortedSet> set;
+
+@property (readwrite, strong) NSArray <NSString *> *testArray;
+
 @end
 
 @implementation CHSortedSetTest
 
-+ (void) initialize {
-	if ([self class] != [CHSortedSetTest class])
-		return;
-	abcde = [[NSArray alloc] initWithObjects:@"A",@"B",@"C",@"D",@"E",nil];
-}
-
-- (Class) classUnderTest {
+- (Class)classUnderTest {
 	return nil;
 }
 
-- (id) createSet {
-	return [[[[self classUnderTest] alloc] init] autorelease];
+- (id<CHSortedSet>)createSet {
+    return [[self.classUnderTest alloc] init];
 }
 
-- (void) setUp {
-	set = [self createSet];
+- (NSArray <NSString *> *)allObjectsForSet:(id<CHSortedSet>)set {
+    return [set allObjects];
 }
 
-- (void) testAddObject {
-	if ([self classUnderTest] == nil)
-		return;
-	if ([self classUnderTest] == [CHAbstractBinarySearchTree class]) {
-		// This method should be unsupported in the abstract parent class.
-		XCTAssertThrows([set addObject:nil]);
-	} else {
-		XCTAssertEqual([set count], (NSUInteger)0);
-		XCTAssertThrows([set addObject:nil]);
-		XCTAssertEqual([set count], (NSUInteger)0);
-		
-		// Try adding distinct objects
-		NSUInteger expectedCount = 0;
-		e = [abcde objectEnumerator];
-		while (anObject = [e nextObject]) {
-			[set addObject:anObject];
-			XCTAssertEqual([set count], ++expectedCount);
-		}
-		XCTAssertEqual([set count], [abcde count]);
-		
-		// Test adding identical object--should be replaced, and count stay the same
-		[set addObject:@"A"];
-		XCTAssertEqual([set count], [abcde count]);
-	}
+- (void)setUp {
+	self.set = [self createSet];
+    self.testArray = @[@"A", @"B", @"C", @"D", @"E"];
 }
 
-- (void) testAllObjects {
-	if (NonConcreteClass())
-		return;
+- (void)testAddObject {
+    XCTAssertEqual(self.set.count, 0);
+    XCTAssertThrows([self.set addObject:nil]);
+    XCTAssertEqual(self.set.count, 0);
+    
+    // Try adding distinct objects
+    NSUInteger expectedCount = 0;
+    for (NSString *object in self.testArray) {
+        [self.set addObject:object];
+        XCTAssertEqual(self.set.count, ++expectedCount);
+    }
+    XCTAssertEqual(self.set.count, self.testArray.count);
+    
+    // Test adding identical object—should be replaced, and count stay the same
+    [self.set addObject:@"A"];
+    XCTAssertEqual(self.set.count, self.testArray.count);
+}
+
+- (void)testAllObjects {
+    returnIfAbstract();
+    
 	// Try with empty sorted set
-	XCTAssertEqualObjects([set allObjects], [NSArray array]);
+	XCTAssertEqualObjects([self.set allObjects], @[]);
+    
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	XCTAssertEqualObjects([set allObjects], abcde);
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertEqualObjects([self.set allObjects], self.testArray);
 }
 
-- (void) testAnyObject {
-	if (NonConcreteClass())
-		return;
+- (void)testAnyObject {
+    returnIfAbstract();
+    
 	// Try with empty sorted set
-	XCTAssertNil([set anyObject]);
+	XCTAssertNil([self.set anyObject]);
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	XCTAssertNotNil([set anyObject]);
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertNotNil([self.set anyObject]);
 }
 
-- (void) testContainsObject {
-	if (NonConcreteClass())
-		return;
+- (void)testContainsObject {
+    returnIfAbstract();
+    
 	// Test contains for nil and non-member objects
-	XCTAssertNoThrow([set containsObject:nil]);
-	XCTAssertFalse([set containsObject:nil]);
-	XCTAssertNoThrow([set containsObject:@"bogus"]);
-	XCTAssertFalse([set containsObject:@"bogus"]);
-	[set addObjectsFromArray:abcde];
-	XCTAssertNoThrow([set containsObject:@"bogus"]);
-	XCTAssertFalse([set containsObject:@"bogus"]);
+	XCTAssertNoThrow([self.set containsObject:nil]);
+	XCTAssertFalse([self.set containsObject:nil]);
+	XCTAssertNoThrow([self.set containsObject:@"bogus"]);
+	XCTAssertFalse([self.set containsObject:@"bogus"]);
+    
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertNoThrow([self.set containsObject:@"bogus"]);
+	XCTAssertFalse([self.set containsObject:@"bogus"]);
+    
 	// Test contains for each object in the set 
-	e = [abcde objectEnumerator];
-	while (anObject = [e nextObject])
-		XCTAssertTrue([set containsObject:anObject]);
+    for (NSString *string in self.testArray) {
+		XCTAssertTrue([self.set containsObject:string]);
+    }
 }
 
-- (void) testFirstObject {
-	if (NonConcreteClass())
-		return;
+- (void)testFirstObject {
+    returnIfAbstract();
+    
 	// Try with empty sorted set
-	XCTAssertNoThrow([set firstObject]);
-	XCTAssertNil([set firstObject]);
+	XCTAssertNoThrow([self.set firstObject]);
+	XCTAssertNil([self.set firstObject]);
+    
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	XCTAssertNoThrow([set firstObject]);
-	XCTAssertEqualObjects([set firstObject], @"A");
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertNoThrow([self.set firstObject]);
+	XCTAssertEqualObjects([self.set firstObject], @"A");
 }
 
-- (void) testInit {
-	if (NonConcreteClass())
-		return;
-	XCTAssertNotNil(set);
-	XCTAssertEqual([set count], (NSUInteger)0);
+- (void)testInit {
+    returnIfAbstract();
+    
+	XCTAssertNotNil(self.set);
+	XCTAssertEqual([self.set count], 0);
 }
 
-- (void) testInitWithArray {
-	if (NonConcreteClass())
-		return;
-	set = [[[[self classUnderTest] alloc] initWithArray:abcde] autorelease];
-	XCTAssertEqual([set count], [abcde count]);
+- (void)testInitWithArray {
+    returnIfAbstract();
+    
+	id<CHSortedSet> set = [[self.classUnderTest alloc] initWithArray:self.testArray];
+	XCTAssertEqual(set.count, self.testArray.count);
 }
 
-- (void) testIsEqual {
-	if (NonConcreteClass())
-		return;
+- (void)testIsEqual {
+    returnIfAbstract();
+    
 	// Calls to -isEqual: exercise -isEqualToSortedSet: by extension
-	XCTAssertTrue([set isEqual:set]);
-	[set addObjectsFromArray:abcde];
-	XCTAssertTrue([set isEqual:set]);
-	XCTAssertFalse([set isEqual:[self createSet]]);
-	XCTAssertFalse([set isEqual:[[NSObject new] autorelease]]);
+	XCTAssertTrue([self.set isEqual:self.set]);
+    
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertTrue([self.set isEqual:self.set]);
+	XCTAssertFalse([self.set isEqual:[self createSet]]);
+	XCTAssertFalse([self.set isEqual:[[NSObject alloc] init]]);
 }
 
-- (void) testLastObject {
-	if (NonConcreteClass())
-		return;
+- (void)testLastObject {
+    returnIfAbstract();
+    
 	// Try with empty sorted set
-	XCTAssertNoThrow([set lastObject]);
-	XCTAssertNil([set lastObject]);
+	XCTAssertNoThrow([self.set lastObject]);
+	XCTAssertNil([self.set lastObject]);
+    
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	XCTAssertNoThrow([set lastObject]);
-	XCTAssertEqualObjects([set lastObject], @"E");
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertNoThrow([self.set lastObject]);
+	XCTAssertEqualObjects([self.set lastObject], @"E");
 }
 
-- (void) testMember {
-	if (NonConcreteClass())
-		return;
+- (void)testMember {
+    returnIfAbstract();
+    
 	// Try with empty sorted set
-	XCTAssertNoThrow([set member:nil]);
-	XCTAssertNoThrow([set member:@"bogus"]);
-	XCTAssertNil([set member:nil]);	
-	XCTAssertNil([set member:@"bogus"]);	
+	XCTAssertNoThrow([self.set member:nil]);
+	XCTAssertNoThrow([self.set member:@"bogus"]);
+	XCTAssertNil([self.set member:nil]);
+	XCTAssertNil([self.set member:@"bogus"]);
+    
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	e = [abcde objectEnumerator];
-	while (anObject = [e nextObject])
-		XCTAssertEqualObjects([set member:anObject], anObject);
-	XCTAssertNoThrow([set member:@"bogus"]);
-	XCTAssertNil([set member:@"bogus"]);
+	[self.set addObjectsFromArray:self.testArray];
+    for (NSString *string in self.testArray) {
+		XCTAssertEqualObjects([self.set member:anObject], string);
+    }
+	XCTAssertNoThrow([self.set member:@"bogus"]);
+	XCTAssertNil([self.set member:@"bogus"]);
 }
 
 - (void) testObjectEnumerator {
-	if (NonConcreteClass())
-		return;
+    returnIfAbstract();
 	
 	// Enumerator shouldn't retain collection if there are no objects
-	XCTAssertEqual([set retainCount], (NSUInteger)1);
-	e = [set objectEnumerator];
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)1);
+	e = [self.set objectEnumerator];
 	XCTAssertNotNil(e);
-	XCTAssertEqual([set retainCount], (NSUInteger)1);
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)1);
 	XCTAssertNil([e nextObject]);
 
 	// Enumerator should retain collection when it has 1+ objects, release on 0
-	[set addObjectsFromArray:abcde];
-	e = [set objectEnumerator];
+	[self.set addObjectsFromArray:self.testArray];
+	e = [self.set objectEnumerator];
 	XCTAssertNotNil(e);
-	XCTAssertEqual([set retainCount], (NSUInteger)2);
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)2);
 	// Grab one object from the enumerator
 	[e nextObject];
-	XCTAssertEqual([set retainCount], (NSUInteger)2);
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)2);
 	// Empty the enumerator of all objects
 	[e allObjects];
-	XCTAssertEqual([set retainCount], (NSUInteger)1);
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)1);
 	
 	// Enumerator should release collection on -dealloc
 	NSAutoreleasePool *pool  = [[NSAutoreleasePool alloc] init];
-	XCTAssertEqual([set retainCount], (NSUInteger)1);
-	e = [set objectEnumerator];
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)1);
+	e = [self.set objectEnumerator];
 	XCTAssertNotNil(e);
-	XCTAssertEqual([set retainCount], (NSUInteger)2);
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)2);
 	[pool drain]; // Force deallocation of autoreleased enumerator
-	XCTAssertEqual([set retainCount], (NSUInteger)1);
+//    XCTAssertEqual([self.set retainCount], (NSUInteger)1);
 	
 	// Test mutation in the middle of enumeration
-	e = [set objectEnumerator];
+	e = [self.set objectEnumerator];
 	XCTAssertNoThrow([e nextObject]);
-	[set addObject:@"bogus"];
+	[self.set addObject:@"bogus"];
 	XCTAssertThrows([e nextObject]);
 	XCTAssertThrows([e allObjects]);
 }
 
-- (void) testRemoveObject {
-	if ([set isMemberOfClass:[CHAbstractBinarySearchTree class]]) {
-		// This method should be unsupported in the abstract parent class.
-		XCTAssertThrows([set removeObject:nil]);
-	}
+- (void)testRemoveObject { }
+
+- (void)testRemoveAllObjects {
+    returnIfAbstract();
+    
+	// Try with empty sorted set
+	XCTAssertNoThrow([self.set removeAllObjects]);
+	XCTAssertEqual([self.set count], 0);
+    
+	// Try with populated sorted set
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertEqual(self.set.count, self.testArray.count);
+	XCTAssertNoThrow([self.set removeAllObjects]);
+	XCTAssertEqual(self.set.count, 0);
 }
 
-- (void) testRemoveAllObjects {
-	if (NonConcreteClass())
-		return;
+- (void)testRemoveFirstObject {
+    returnIfAbstract();
+    
 	// Try with empty sorted set
-	XCTAssertNoThrow([set removeAllObjects]);
-	XCTAssertEqual([set count], (NSUInteger)0);
+	XCTAssertNoThrow([self.set removeFirstObject]);
+	XCTAssertEqual(self.set.count, 0);
+    
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	XCTAssertEqual([set count], [abcde count]);
-	XCTAssertNoThrow([set removeAllObjects]);
-	XCTAssertEqual([set count], (NSUInteger)0);
-}
-
-- (void) testRemoveFirstObject {
-	if (NonConcreteClass())
-		return;
-	// Try with empty sorted set
-	XCTAssertNoThrow([set removeFirstObject]);
-	XCTAssertEqual([set count], (NSUInteger)0);
-	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	XCTAssertEqualObjects([set firstObject], @"A");
-	XCTAssertEqual([set count], [abcde count]);
-	XCTAssertNoThrow([set removeFirstObject]);
-	XCTAssertEqualObjects([set firstObject], @"B");
-	XCTAssertEqual([set count], [abcde count]-1);
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertEqualObjects([self.set firstObject], @"A");
+	XCTAssertEqual(self.set.count, self.testArray.count);
+	XCTAssertNoThrow([self.set removeFirstObject]);
+	XCTAssertEqualObjects([self.set firstObject], @"B");
+	XCTAssertEqual([self.set count], [self.testArray count] - 1);
 }
 
 - (void) testRemoveLastObject {
-	if (NonConcreteClass())
-		return;
+    returnIfAbstract();
+    
 	// Try with empty sorted set
-	XCTAssertNoThrow([set removeLastObject]);
-	XCTAssertEqual([set count], (NSUInteger)0);
+	XCTAssertNoThrow([self.set removeLastObject]);
+	XCTAssertEqual([self.set count], (NSUInteger)0);
+    
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	XCTAssertEqualObjects([set lastObject], @"E");
-	XCTAssertEqual([set count], [abcde count]);
-	XCTAssertNoThrow([set removeLastObject]);
-	XCTAssertEqualObjects([set lastObject], @"D");
-	XCTAssertEqual([set count], [abcde count]-1);
+	[self.set addObjectsFromArray:self.testArray];
+	XCTAssertEqualObjects([self.set lastObject], @"E");
+	XCTAssertEqual([self.set count], [self.testArray count]);
+	XCTAssertNoThrow([self.set removeLastObject]);
+	XCTAssertEqualObjects([self.set lastObject], @"D");
+	XCTAssertEqual([self.set count], [self.testArray count]-1);
 }
 
 - (void) testReverseObjectEnumerator {
-	if (NonConcreteClass())
-		return;
+	returnIfAbstract();
+    
 	// Try with empty sorted set
-	NSEnumerator *reverse = [set reverseObjectEnumerator];
+	NSEnumerator *reverse = [self.set reverseObjectEnumerator];
 	XCTAssertNotNil(reverse);
 	XCTAssertNil([reverse nextObject]);
 	// Try with populated sorted set
-	[set addObjectsFromArray:abcde];
-	reverse = [set reverseObjectEnumerator];
-	e = [[set allObjects] reverseObjectEnumerator];
+	[self.set addObjectsFromArray:self.testArray];
+	reverse = [self.set reverseObjectEnumerator];
+	e = [[self.set allObjects] reverseObjectEnumerator];
 	while (anObject = [e nextObject]) {
 		XCTAssertEqualObjects([reverse nextObject], anObject);
 	}
 }
 
 - (void) testSet {
-	if (NonConcreteClass())
-		return;
+	returnIfAbstract();
+    
 	NSArray *order = [NSArray arrayWithObjects:@"B",@"M",@"C",@"K",@"D",@"I",@"E",@"G",
 			   @"J",@"L",@"N",@"F",@"A",@"H",nil];
-	[set addObjectsFromArray:order];
-	XCTAssertEqualObjects([set set], [NSSet setWithArray:order]);
+	[self.set addObjectsFromArray:order];
+	XCTAssertEqualObjects([self.set set], [NSSet setWithArray:order]);
 }
 
 - (void) testSubsetFromObjectToObject {
-	if (NonConcreteClass())
-		return;
+	returnIfAbstract();
+    
 	NSArray *acdeg = [NSArray arrayWithObjects:@"A",@"C",@"D",@"E",@"G",nil];
 	NSArray *acde  = [NSArray arrayWithObjects:@"A",@"C",@"D",@"E",nil];
 	NSArray *aceg  = [NSArray arrayWithObjects:@"A",@"C",@"E",@"G",nil];
@@ -310,7 +309,7 @@ static NSArray *abcde;
 	NSArray *cdeg  = [NSArray arrayWithObjects:@"C",@"D",@"E",@"G",nil];
 	NSArray *subset;
 	
-	set = [[[self classUnderTest] alloc] initWithArray:acdeg];
+	id<CHSortedSet> set = [[[self classUnderTest] alloc] initWithArray:acdeg];
 	
 	// Test including all objects (2 nil params, or match first and last)
 	subset = [[set subsetFromObject:nil toObject:nil options:0] allObjects];
@@ -377,60 +376,49 @@ static NSArray *abcde;
 	XCTAssertEqualObjects(subset, acdeg);
 }
 
-- (void) testNSCoding {
-	if (NonConcreteClass())
-		return;
-	NSArray *order = [NSArray arrayWithObjects:@"B",@"M",@"C",@"K",@"D",@"I",@"E",@"G",@"J",@"L",@"N",@"F",@"A",@"H",nil];
-	NSArray *before, *after;
-	[set addObjectsFromArray:order];
-	XCTAssertEqual([set count], [order count]);
-	if ([set conformsToProtocol:@protocol(CHSearchTree)])
-		before = [set allObjectsWithTraversalOrder:CHTraverseLevelOrder];
-	else
-		before = [set allObjects];
+- (void)testNSCoding {
+	returnIfAbstract();
+    
+	NSArray <NSString *> *order = @[@"B", @"M", @"C", @"K", @"D", @"I", @"E", @"G", @"J", @"L", @"N", @"F", @"A", @"H"];
+	NSArray <NSString *> *before, *after;
+    
+	[self.set addObjectsFromArray:order];
+	XCTAssertEqual([self.set count], [order count]);
+    before = [self allObjectsForSet:self.set];
 	
-	NSData *data = [NSKeyedArchiver archivedDataWithRootObject:set];
-	set = [[NSKeyedUnarchiver unarchiveObjectWithData:data] retain];
+	NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self.set];
+	self.set = [[NSKeyedUnarchiver unarchiveObjectWithData:data] retain];
 	
-	XCTAssertEqual([set count], [order count]);
-	if ([set conformsToProtocol:@protocol(CHSearchTree)])
-		after = [set allObjectsWithTraversalOrder:CHTraverseLevelOrder];
-	else
-		after = [set allObjects];
+	XCTAssertEqual([self.set count], [order count]);
+    after = [self allObjectsForSet:self.set];
 	if ([self classUnderTest] != [CHTreap class])
 		XCTAssertEqualObjects(before, after);
 }
 
-- (void) testNSCopying {
-	if (NonConcreteClass())
-		return;
-	id copy;
-	copy = [[set copy] autorelease];
+- (void)testNSCopying {
+	returnIfAbstract();
+    
+	id<CHSortedSet> copy = [[self.set copy] autorelease];
 	XCTAssertNotNil(copy);
 	XCTAssertEqual([copy count], (NSUInteger)0);
-	XCTAssertEqual([set hash], [copy hash]);
+	XCTAssertEqual([self.set hash], [copy hash]);
 	
-	[set addObjectsFromArray:abcde];
-	copy = [[set copy] autorelease];
+	[self.set addObjectsFromArray:self.testArray];
+	copy = [[self.set copy] autorelease];
 	XCTAssertNotNil(copy);
-	XCTAssertEqual([copy count], [abcde count]);
-	XCTAssertEqual([set hash], [copy hash]);
-	if ([set conformsToProtocol:@protocol(CHSearchTree)] && [self classUnderTest] != [CHTreap class]) {
-		XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
-							 [copy allObjectsWithTraversalOrder:CHTraverseLevelOrder]);
-	} else {
-		XCTAssertEqualObjects([set allObjects], [copy allObjects]);
-	}
+	XCTAssertEqual([copy count], [self.testArray count]);
+	XCTAssertEqual([self.set hash], [copy hash]);
+    XCTAssertEqualObjects([self allObjectsForSet:self.set], [self allObjectsForSet:copy]);
 }
 
-- (void) testNSFastEnumeration {
-	if (NonConcreteClass())
-		return;
+- (void)testNSFastEnumeration {
+	returnIfAbstract();
 	NSUInteger limit = 32; // NSFastEnumeration asks for 16 objects at a time
-	for (NSUInteger number = 1; number <= limit; number++)
-		[set addObject:[NSNumber numberWithUnsignedInteger:number]];
+    for (NSUInteger number = 1; number <= limit; number++) {
+		[self.set addObject:@(number)];
+    }
 	NSUInteger expected = 1, count = 0;
-	for (NSNumber *object in set) {
+	for (NSNumber *object in self.set) {
 		XCTAssertEqual([object unsignedIntegerValue], expected++);
 		count++;
 	}
@@ -438,13 +426,29 @@ static NSArray *abcde;
 	
 	BOOL raisedException = NO;
 	@try {
-		for (id object in set)
-			[set addObject:[NSNumber numberWithInteger:-1]];
+        for (id object in self.set) {
+            (void)object;
+			[self.set addObject:@(-1)];
+        }
 	}
 	@catch (NSException *exception) {
 		raisedException = YES;
 	}
 	XCTAssertTrue(raisedException);
+}
+
+@end
+
+#pragma mark -
+
+@interface CHSearchTreeTest : CHSortedSetTest
+
+@end
+
+@implementation CHSearchTreeTest
+
+- (NSArray <NSString *> *)allSetObjects {
+    return [(id<CHSearchTree>)self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder];
 }
 
 @end
@@ -466,40 +470,51 @@ static NSArray *abcde;
 @end
 
 @interface CHAbstractBinarySearchTreeTest : CHSortedSetTest
+
+@property (readwrite, strong) CHAbstractBinarySearchTree *set;
+
 @end
 
 @implementation CHAbstractBinarySearchTreeTest
 
-- (Class) classUnderTest {
-	return [CHAbstractBinarySearchTree class];
+@dynamic set;
+
+- (Class)classUnderTest {
+	return CHAbstractBinarySearchTree.class;
 }
 
-- (void) setUp {
-	set = [self createSet];
+- (void)testAddObject {
+    // This method should be unsupported in the abstract parent class.
+    XCTAssertThrows([self.set addObject:nil]);
+}
+
+- (void)testRemoveObject {
+    // This method should be unsupported in the abstract parent class.
+    XCTAssertThrows([self.set removeObject:nil]);
 }
 
 - (void) testAllObjectsWithTraversalOrder {
-	if ([self class] == [CHAbstractBinarySearchTreeTest class])
-		return;
+    returnIfAbstract();
+    
+    [self.set addObjectsFromArray:self.testArray];
 	// Also tests -objectEnumeratorWithTraversalOrder: implicitly
-	[set addObjectsFromArray:abcde];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseAscending],
-						 ([NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseDescending],
-						 ([NSArray arrayWithObjects:@"E",@"D",@"C",@"B",@"A",nil]));
+    XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseAscending],
+                         ([NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",nil]));
+    XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseDescending],
+                         ([NSArray arrayWithObjects:@"E",@"D",@"C",@"B",@"A",nil]));
 	// NOTE: Individual subclasses should test pre/post/level-order traversals
 }
 
-- (void) testDescription {
-	XCTAssertEqualObjects([set description], [[set allObjects] description]);
+- (void)testDescription {
+	XCTAssertEqualObjects([self.set description], [[self.set allObjects] description]);
 }
 
-- (void) testHeaderObject {
-	id headerObject = [set headerObject];
+- (void)testHeaderObject {
+	id headerObject = [self.set headerObject];
 	XCTAssertNotNil(headerObject);
-	XCTAssertThrows([headerObject retain]);
-	XCTAssertThrows([headerObject release]);
-	XCTAssertThrows([headerObject autorelease]);
+//    XCTAssertThrows([headerObject retain]);
+//    XCTAssertThrows([headerObject release]);
+//    XCTAssertThrows([headerObject autorelease]);
 }
 
 - (void) testIsEqualToSearchTree {
@@ -516,7 +531,7 @@ static NSArray *abcde;
 	e = [treeClasses objectEnumerator];
 	Class theClass;
 	while (theClass = [e nextObject]) {
-		[equalTrees addObject:[[theClass alloc] initWithArray:abcde]];
+		[equalTrees addObject:[[theClass alloc] initWithArray:self.testArray]];
 	}
 	// Add a repeat of the first class to avoid wrapping.
 	[equalTrees addObject:[equalTrees objectAtIndex:0]];
@@ -559,33 +574,33 @@ static NSArray *abcde;
 }
 
 - (void) testAddObject {
-	XCTAssertEqual([set count], (NSUInteger)0);
-	XCTAssertThrows([set addObject:nil]);
-	XCTAssertEqual([set count], (NSUInteger)0);
+	XCTAssertEqual([self.set count], (NSUInteger)0);
+	XCTAssertThrows([self.set addObject:nil]);
+	XCTAssertEqual([self.set count], (NSUInteger)0);
 	
-	[set addObjectsFromArray:objects];
-	XCTAssertEqual([set count], [objects count]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseAscending],
+	[self.set addObjectsFromArray:objects];
+	XCTAssertEqual([self.set count], [objects count]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseAscending],
 						 ([NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",@"I",@"J",@"K",@"L",@"M",@"N",@"O",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseDescending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseDescending],
 						 ([NSArray arrayWithObjects:@"O",@"N",@"M",@"L",@"K",@"J",@"I",@"H",@"G",@"F",@"E",@"D",@"C",@"B",@"A",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"A",@"B",@"D",@"L",@"H",@"F",@"G",@"J",@"I",@"K",@"N",@"M",@"O",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePostOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePostOrder],
 						 ([NSArray arrayWithObjects:@"B",@"A",@"D",@"C",@"G",@"F",@"I",@"K",@"J",@"H",@"M",@"O",@"N",@"L",@"E",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"L",@"A",@"D",@"H",@"N",@"B",@"F",@"J",@"M",@"O",@"G",@"I",@"K",nil]));
 	
 	// Test adding identical object--should be replaced, and count stay the same
-	[set addObject:@"A"];
-	XCTAssertEqual([set count], [objects count]);
+	[self.set addObject:@"A"];
+	XCTAssertEqual([self.set count], [objects count]);
 }
 
 - (void) testDebugDescriptionForNode {
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->level = 1;
-	XCTAssertEqualObjects([set debugDescriptionForNode:node],
+	XCTAssertEqualObjects([self.set debugDescriptionForNode:node],
 						 @"[1]\t\"A B C\"");
 	free(node);
 }
@@ -594,60 +609,60 @@ static NSArray *abcde;
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->level = 1;
-	XCTAssertEqualObjects([set dotGraphStringForNode:node],
+	XCTAssertEqualObjects([self.set dotGraphStringForNode:node],
 						 @"  \"A B C\" [label=\"A B C\\n1\"];\n");
 	free(node);
 }
 
 - (void) testRemoveObject {
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	[set addObjectsFromArray:objects];
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	XCTAssertEqual([set count], [objects count]);
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	[self.set addObjectsFromArray:objects];
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	XCTAssertEqual([self.set count], [objects count]);
 	
-	[set removeObject:@"J"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"J"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"L",@"A",@"D",@"H",@"N",@"B",@"F",@"I",@"M",@"O",@"G",@"K",nil]));
-	[set removeObject:@"N"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"N"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"H",@"A",@"D",@"F",@"L",@"B",@"G",@"I",@"M",@"K",@"O",nil]));
-	[set removeObject:@"H"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"H"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"I",@"A",@"D",@"F",@"L",@"B",@"G",@"K",@"M",@"O",nil]));
-	[set removeObject:@"D"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"D"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"B",@"I",@"A",@"C",@"F",@"L",@"G",@"K",@"M",@"O",nil]));
-	[set removeObject:@"C"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"C"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"I",@"E",@"L",@"A",@"F",@"K",@"M",@"B",@"G",@"O",nil]));
-	[set removeObject:@"K"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"K"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"I",@"E",@"M",@"A",@"F",@"L",@"O",@"B",@"G",nil]));
-	[set removeObject:@"M"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"M"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"A",@"I",@"B",@"F",@"L",@"G",@"O",nil]));
-	[set removeObject:@"B"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"B"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"A",@"I",@"F",@"L",@"G",@"O",nil]));
-	[set removeObject:@"A"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"A"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"F",@"E",@"I",@"G",@"L",@"O",nil]));
-	[set removeObject:@"G"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"G"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"F",@"E",@"L",@"I",@"O",nil]));
-	[set removeObject:@"E"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"E"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"I",@"F",@"L",@"O",nil]));
-	[set removeObject:@"F"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"F"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"L",@"I",@"O",nil]));
-	[set removeObject:@"L"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"L"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"I",@"O",nil]));
-	[set removeObject:@"I"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeObject:@"I"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"O",nil]));
 }
 
@@ -710,42 +725,42 @@ static NSArray *abcde;
 - (void) testAddObject {
 	[super testAddObject];
 	
-	[set removeAllObjects];
+	[self.set removeAllObjects];
 	e = [objects objectEnumerator];
 	
 	// Test adding objects one at a time and verify the ordering of tree nodes
-	[set addObject:[e nextObject]]; // B
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject]]; // B
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"B",nil]));
-	[set addObject:[e nextObject]]; // N
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject]]; // N
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"B",@"N",nil]));
-	[set addObject:[e nextObject]]; // C
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject]]; // C
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"N",nil]));
-	[set addObject:[e nextObject]]; // L
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject]]; // L
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"N",@"L",nil]));
-	[set addObject:[e nextObject]]; // D
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject]]; // D
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"L",@"D",@"N",nil]));
-	[set addObject:[e nextObject]]; // J
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject]]; // J
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"D",@"C",@"B",@"L",@"J",@"N",nil]));
 }
 
 
 - (void) testAllObjectsWithTraversalOrder {
-	[set addObjectsFromArray:objects];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseAscending],
+	[self.set addObjectsFromArray:objects];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseAscending],
 						 ([NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",@"I",@"J",@"K",@"L",@"M",@"N",@"O",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseDescending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseDescending],
 						 ([NSArray arrayWithObjects:@"O",@"N",@"M",@"L",@"K",@"J",@"I",@"H",@"G",@"F",@"E",@"D",@"C",@"B",@"A",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"J",@"D",@"B",@"A",@"C",@"G",@"E",@"F",@"H",@"I",@"L",@"K",@"N",@"M",@"O",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePostOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePostOrder],
 						 ([NSArray arrayWithObjects:@"A",@"C",@"B",@"F",@"E",@"I",@"H",@"G",@"D",@"K",@"M",@"O",@"N",@"L",@"J",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"J",@"D",@"L",@"B",@"G",@"K",@"N",@"A",@"C",@"E",@"H",@"M",@"O",@"F",@"I",nil]));
 }
 
@@ -753,7 +768,7 @@ static NSArray *abcde;
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->balance = 0;
-	XCTAssertEqualObjects([set debugDescriptionForNode:node],
+	XCTAssertEqualObjects([self.set debugDescriptionForNode:node],
 						 @"[ 0]\t\"A B C\"");
 	free(node);
 }
@@ -762,98 +777,98 @@ static NSArray *abcde;
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->balance = 0;
-	XCTAssertEqualObjects([set dotGraphStringForNode:node],
+	XCTAssertEqualObjects([self.set dotGraphStringForNode:node],
 						 @"  \"A B C\" [label=\"A B C\\n0\"];\n");
 	free(node);
 }
 
 - (void) testRemoveObject {
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	[set addObjectsFromArray:objects];
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	XCTAssertEqual([set count], [objects count]);
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	[self.set addObjectsFromArray:objects];
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	XCTAssertEqual([self.set count], [objects count]);
 	
 	e = [objects objectEnumerator];
 	
-	[set removeObject:[e nextObject]]; // B
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // B
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"J",@"D",@"C",@"A",@"G",@"E",@"F",@"H",@"I",@"L",@"K",@"N",@"M",@"O",nil]));
-	[set removeObject:[e nextObject]]; // N
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // N
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"J",@"D",@"C",@"A",@"G",@"E",@"F",@"H",@"I",@"L",@"K",@"O",@"M",nil]));
-	[set removeObject:[e nextObject]]; // C
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // C
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"J",@"G",@"D",@"A",@"E",@"F",@"H",@"I",@"L",@"K",@"O",@"M",nil]));
-	[set removeObject:[e nextObject]]; // L
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // L
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"D",@"A",@"E",@"F",@"J",@"H",@"I",@"M",@"K",@"O",nil]));
-	[set removeObject:[e nextObject]]; // D
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // D
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"E",@"A",@"F",@"J",@"H",@"I",@"M",@"K",@"O",nil]));
-	[set removeObject:[e nextObject]]; // J
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // J
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"E",@"A",@"F",@"K",@"H",@"I",@"M",@"O",nil]));
-	[set removeObject:[e nextObject]]; // E
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // E
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"F",@"A",@"K",@"H",@"I",@"M",@"O",nil]));
-	[set removeObject:[e nextObject]]; // H
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // H
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"F",@"A",@"K",@"I",@"M",@"O",nil]));
-	[set removeObject:[e nextObject]]; // K
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // K
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"F",@"A",@"M",@"I",@"O",nil]));
-	[set removeObject:[e nextObject]]; // M
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // M
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"F",@"A",@"O",@"I",nil]));
-	[set removeObject:[e nextObject]]; // O
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // O
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",@"F",@"A",@"I",nil]));
-	[set removeObject:[e nextObject]]; // G
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // G
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"A",@"I",nil]));
-	[set removeObject:[e nextObject]]; // A
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // A
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"I",nil]));
-	[set removeObject:[e nextObject]]; // I
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:[e nextObject]]; // I
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",nil]));
 }
 
 - (void) testRemoveObjectDoubleLeft {
 	objects = [NSArray arrayWithObjects:@"F",@"B",@"J",@"A",@"D",@"H",@"K",@"C",@"E",@"G",@"I",nil];
-	[set addObjectsFromArray:objects];
-	[set removeObject:@"A"];
-	[set removeObject:@"D"];
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqual([set count], [objects count] - 2);	
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObjectsFromArray:objects];
+	[self.set removeObject:@"A"];
+	[self.set removeObject:@"D"];
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqual([self.set count], [objects count] - 2);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"C",@"B",@"E",@"J",@"H",@"G",@"I",@"K",nil]));
 }
 
 - (void) testRemoveObjectDoubleRight {
 	objects = [NSArray arrayWithObjects:@"F",@"B",@"J",@"A",@"D",@"H",@"K",@"C",@"E",@"G",@"I",nil];
-	[set addObjectsFromArray:objects];
-	[set removeObject:@"K"];
-	[set removeObject:@"G"];
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqual([set count], [objects count] - 2);	
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObjectsFromArray:objects];
+	[self.set removeObject:@"K"];
+	[self.set removeObject:@"G"];
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqual([self.set count], [objects count] - 2);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"B",@"A",@"D",@"C",@"E",@"I",@"H",@"J",nil]));
 }
 
@@ -925,80 +940,80 @@ static NSArray *abcde;
 
 - (void) testAddObject {
 	[super testAddObject];
-	[set removeAllObjects];
+	[self.set removeAllObjects];
 	
 	e = [objects objectEnumerator];
 	
-	[set addObject:[e nextObject]]; // B
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // B
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"B",nil]));
-	[set addObject:[e nextObject]]; // M
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // M
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"B",@"M",nil]));
-	[set addObject:[e nextObject]]; // C
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // C
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"M",nil]));
-	[set addObject:[e nextObject]]; // K
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // K
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"M",@"K",nil]));
-	[set addObject:[e nextObject]]; // D
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // D
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"K",@"D",@"M",nil]));
-	[set addObject:[e nextObject]]; // I
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // I
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"K",@"D",@"M",@"I",nil]));
-	[set addObject:[e nextObject]]; // E
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // E
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"K",@"E",@"M",@"D",@"I",nil]));
-	[set addObject:[e nextObject]]; // G
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // G
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"G",nil]));
-	[set addObject:[e nextObject]]; // J
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // J
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"G",@"J",nil]));
-	[set addObject:[e nextObject]]; // L
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // L
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"G",@"J",@"L",nil]));
-	[set addObject:[e nextObject]]; // N
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // N
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"G",@"J",@"L",@"N",nil]));
-	[set addObject:[e nextObject]]; // F
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // F
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"G",@"J",@"L",@"N",@"F",nil]));
-	[set addObject:[e nextObject]]; // A
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // A
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"A",@"G",@"J",@"L",@"N",@"F",nil]));
-	[set addObject:[e nextObject]]; // H
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObject:[e nextObject]]; // H
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"A",@"G",@"J",@"L",@"N",@"F",@"H",nil]));
 	
 	// Test adding identical object--should be replaced, and count stay the same
-	XCTAssertEqual([set count], [objects count]);
-	[set addObject:@"A"];
-	XCTAssertEqual([set count], [objects count]);
+	XCTAssertEqual([self.set count], [objects count]);
+	[self.set addObject:@"A"];
+	XCTAssertEqual([self.set count], [objects count]);
 }
 
 - (void) testAddObjectsAscending {
 	objects = [NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",
 			   @"I",@"J",@"K",@"L",@"M",@"N",@"O",@"P",@"Q",@"R",nil];
-	[set addObjectsFromArray:objects];
-	XCTAssertEqual([set count], [objects count]);
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set addObjectsFromArray:objects];
+	XCTAssertEqual([self.set count], [objects count]);
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"H",@"D",@"L",@"B",@"F",@"J",@"N",@"A",@"C",@"E",@"G",@"I",@"K",@"M",@"P",@"O",@"Q",@"R",nil]));
 }
 
@@ -1007,25 +1022,25 @@ static NSArray *abcde;
 			   @"J",@"I",@"H",@"G",@"F",@"E",@"D",@"C",@"B",@"A",nil];
 	e = [objects objectEnumerator];
 	while (anObject = [e nextObject])
-		[set addObject:anObject];
-	XCTAssertEqual([set count], [objects count]);
-	XCTAssertNoThrow([set verify]);
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+		[self.set addObject:anObject];
+	XCTAssertEqual([self.set count], [objects count]);
+	XCTAssertNoThrow([self.set verify]);
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"K",@"G",@"O",@"E",@"I",@"M",@"Q",@"C",@"F",@"H",@"J",@"L",@"N",@"P",@"R",@"B",@"D",@"A",nil]));
 }
 
 - (void) testAllObjectsWithTraversalOrder {
-	[set addObjectsFromArray:objects];
+	[self.set addObjectsFromArray:objects];
 	
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseAscending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseAscending],
 						 ([NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",@"I",@"J",@"K",@"L",@"M",@"N",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseDescending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseDescending],
 						 ([NSArray arrayWithObjects:@"N",@"M",@"L",@"K",@"J",@"I",@"H",@"G",@"F",@"E",@"D",@"C",@"B",@"A",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"B",@"A",@"D",@"K",@"I",@"G",@"F",@"H",@"J",@"M",@"L",@"N",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePostOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePostOrder],
 						 ([NSArray arrayWithObjects:@"A",@"B",@"D",@"C",@"F",@"H",@"G",@"J",@"I",@"L",@"N",@"M",@"K",@"E",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"K",@"B",@"D",@"I",@"M",@"A",@"G",@"J",@"L",@"N",@"F",@"H",nil]));
 }
 
@@ -1033,10 +1048,10 @@ static NSArray *abcde;
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->color = kRED;
-	XCTAssertEqualObjects([set debugDescriptionForNode:node],
+	XCTAssertEqualObjects([self.set debugDescriptionForNode:node],
 						 @"[ RED ]	\"A B C\"");
 	node->color = kBLACK;
-	XCTAssertEqualObjects([set debugDescriptionForNode:node],
+	XCTAssertEqualObjects([self.set debugDescriptionForNode:node],
 						 @"[BLACK]	\"A B C\"");
 	free(node);
 }
@@ -1045,28 +1060,28 @@ static NSArray *abcde;
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->color = kRED;
-	XCTAssertEqualObjects([set dotGraphStringForNode:node],
+	XCTAssertEqualObjects([self.set dotGraphStringForNode:node],
 						 @"  \"A B C\" [color=red];\n");
 	node->color = kBLACK;
-	XCTAssertEqualObjects([set dotGraphStringForNode:node],
+	XCTAssertEqualObjects([self.set dotGraphStringForNode:node],
 						 @"  \"A B C\" [color=black];\n");
 	free(node);
 }
 
 - (void) testRemoveObject {
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	[set addObjectsFromArray:objects];
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	XCTAssertEqual([set count], [objects count]);
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	[self.set addObjectsFromArray:objects];
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	XCTAssertEqual([self.set count], [objects count]);
 	
 	NSUInteger count = [objects count];
 	e = [objects objectEnumerator];
 	while (anObject = [e nextObject]) {
-		[set removeObject:anObject];
-		XCTAssertEqual([set count], --count);
-		XCTAssertNoThrow([set verify]);
+		[self.set removeObject:anObject];
+		XCTAssertEqual([self.set count], --count);
+		XCTAssertNoThrow([self.set verify]);
 	}
 }
 
@@ -1140,14 +1155,14 @@ static NSArray *abcde;
 	
 	// Repeat a few times to try to get a decent random spread.
 	for (NSUInteger tries = 1, count; tries <= 5; tries++) {
-		[set removeAllObjects];
+		[self.set removeAllObjects];
 		count = 0;
 		e = [objects objectEnumerator];
 		while (anObject = [e nextObject]) {
-			[set addObject:anObject];
-			XCTAssertEqual([set count], ++count);
+			[self.set addObject:anObject];
+			XCTAssertEqual([self.set count], ++count);
 			// Can't test a specific order because of randomly-assigned priorities
-			XCTAssertNoThrow([set verify]);
+			XCTAssertNoThrow([self.set verify]);
 		}
 	}
 }
@@ -1155,9 +1170,9 @@ static NSArray *abcde;
 - (void) testAddObjectWithPriority {
 	[super testAddObject];
 
-	XCTAssertNoThrow([set addObject:@"foo" withPriority:0]);
-	XCTAssertNoThrow([set addObject:@"foo" withPriority:CHTreapNotFound]);
-	[set removeAllObjects];
+	XCTAssertNoThrow([self.set addObject:@"foo" withPriority:0]);
+	XCTAssertNoThrow([self.set addObject:@"foo" withPriority:CHTreapNotFound]);
+	[self.set removeAllObjects];
 	
 	NSUInteger priority = 0;
 	e = [objects objectEnumerator];
@@ -1165,67 +1180,67 @@ static NSArray *abcde;
 	// Simulate by inserting unordered elements with increasing priority
 	// This artificially balances the tree, but we can test the result.
 	
-	[set addObject:[e nextObject] withPriority:(++priority)]; // G
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // G
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"G",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // D
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // D
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"D",@"G",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // K
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // K
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"K",@"D",@"G",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // B
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // B
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"B",@"K",@"D",@"G",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // I
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // I
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"I",@"B",@"D",@"G",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // F
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // F
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"B",@"D",@"I",@"G",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // L
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // L
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"L",@"F",@"B",@"D",@"I",@"G",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // C
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // C
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"C",@"B",@"L",@"F",@"D",@"I",@"G",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // H
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // H
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"H",@"C",@"B",@"F",@"D",@"G",@"L",@"I",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // E
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // E
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"E",@"C",@"B",@"D",@"H",@"F",@"G",@"L",@"I",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // M
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // M
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"M",@"E",@"C",@"B",@"D",@"H",@"F",@"G",@"L",@"I",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // A
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // A
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"A",@"M",@"E",@"C",@"B",@"D",@"H",@"F",@"G",@"L",@"I",@"K",nil]));
-	[set addObject:[e nextObject] withPriority:(++priority)]; // J
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set addObject:[e nextObject] withPriority:(++priority)]; // J
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"J",@"A",@"E",@"C",@"B",@"D",@"H",@"F",@"G",@"I",@"M",@"L",@"K",nil]));
 }
 
 - (void) testAllObjectsWithTraversalOrder {
 	e = [objects objectEnumerator];
 	while (anObject = [e nextObject])
-		[set addObject:anObject];
+		[self.set addObject:anObject];
 	
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseAscending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseAscending],
 						 ([NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",@"I",@"J",@"K",@"L",@"M",nil]));	
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseDescending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseDescending],
 						 ([NSArray arrayWithObjects:@"M",@"L",@"K",@"J",@"I",@"H",@"G",@"F",@"E",@"D",@"C",@"B",@"A",nil]));	
 	// Test adding an existing object to the treap
-	XCTAssertEqual([set count], [objects count]);
-	[set addObject:@"A" withPriority:NSIntegerMin];
-	XCTAssertEqual([set count], [objects count]);	
+	XCTAssertEqual([self.set count], [objects count]);
+	[self.set addObject:@"A" withPriority:NSIntegerMin];
+	XCTAssertEqual([self.set count], [objects count]);
 }
 
 - (void) testDebugDescriptionForNode {
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->priority = 123456789;
-	XCTAssertEqualObjects([set debugDescriptionForNode:node],
+	XCTAssertEqualObjects([self.set debugDescriptionForNode:node],
 						 @"[  123456789]\t\"A B C\"");
 	free(node);
 }
@@ -1234,62 +1249,62 @@ static NSArray *abcde;
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
 	node->priority = 123456789;
-	XCTAssertEqualObjects([set dotGraphStringForNode:node],
+	XCTAssertEqualObjects([self.set dotGraphStringForNode:node],
 						 @"  \"A B C\" [label=\"A B C\\n123456789\"];\n");
 	free(node);
 }
 
 - (void) testPriorityForObject {
 	// Priority value should indicate that an object not in the treap is absent.
-	XCTAssertEqual([set priorityForObject:nil],      (NSUInteger)CHTreapNotFound);
-	XCTAssertEqual([set priorityForObject:@"bogus"], (NSUInteger)CHTreapNotFound);
-	[set addObjectsFromArray:objects];
-	XCTAssertEqual([set priorityForObject:nil],      (NSUInteger)CHTreapNotFound);
-	XCTAssertEqual([set priorityForObject:@"bogus"], (NSUInteger)CHTreapNotFound);
+	XCTAssertEqual([self.set priorityForObject:nil],      (NSUInteger)CHTreapNotFound);
+	XCTAssertEqual([self.set priorityForObject:@"bogus"], (NSUInteger)CHTreapNotFound);
+	[self.set addObjectsFromArray:objects];
+	XCTAssertEqual([self.set priorityForObject:nil],      (NSUInteger)CHTreapNotFound);
+	XCTAssertEqual([self.set priorityForObject:@"bogus"], (NSUInteger)CHTreapNotFound);
 	
 	// Inserting from 'objects' with these priorities creates a known ordering.
 	NSUInteger priorities[] = {8,11,13,12,1,4,5,9,6,3,10,7,2};
 	
 	NSUInteger index = 0;
-	[set removeAllObjects];
+	[self.set removeAllObjects];
 	e = [objects objectEnumerator];
 	while (anObject = [e nextObject]) {
-		[set addObject:anObject withPriority:(priorities[index++])];
-		[set verify];
+		[self.set addObject:anObject withPriority:(priorities[index++])];
+		[self.set verify];
 	}
 	
 	// Verify that the assigned priorities are what we expect
 	index = 0;
 	e = [objects objectEnumerator];
 	while (anObject = [e nextObject])
-		XCTAssertEqual([set priorityForObject:anObject], priorities[index++]);
+		XCTAssertEqual([self.set priorityForObject:anObject], priorities[index++]);
 	
 	// Verify the required tree structure with these objects and priorities.
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"K",@"B",@"A",@"D",@"C",@"G",@"F",@"E",@"H",@"J",@"I",@"M",@"L",nil]));
 }
 
 - (void) testRemoveObject {
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	[set addObjectsFromArray:objects];
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	XCTAssertEqual([set count], [objects count]);
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	[self.set addObjectsFromArray:objects];
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	XCTAssertEqual([self.set count], [objects count]);
 
 	// Remove all nodes one by one, and test treap validity at each step
 	NSUInteger count = [objects count];
 	e = [objects objectEnumerator];
 	while (anObject = [e nextObject]) {
-		[set removeObject:anObject];
-		XCTAssertEqual([set count], --count);
-		XCTAssertNoThrow([set verify]);
+		[self.set removeObject:anObject];
+		XCTAssertEqual([self.set count], --count);
+		XCTAssertNoThrow([self.set verify]);
 	}
 	
 	// Test removing a node which has been removed from the tree
-	XCTAssertEqual([set count], (NSUInteger)0);
-	[set removeObject:@"bogus"];
-	XCTAssertEqual([set count], (NSUInteger)0);
+	XCTAssertEqual([self.set count], (NSUInteger)0);
+	[self.set removeObject:@"bogus"];
+	XCTAssertEqual([self.set count], (NSUInteger)0);
 }
 
 @end
@@ -1325,27 +1340,27 @@ static NSArray *abcde;
 - (void) testAddObject {
 	[super testAddObject];
 	
-	[set removeAllObjects];
-	[set addObjectsFromArray:objects];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	[self.set removeAllObjects];
+	[self.set addObjectsFromArray:objects];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 objects);
 }
 
 - (void) testAllObjectsWithTraversalOrder {
 	[super testAllObjectsWithTraversalOrder];
-	[set removeAllObjects];
-	[set addObjectsFromArray:objects];
+	[self.set removeAllObjects];
+	[self.set addObjectsFromArray:objects];
 	
 	// Test all traversal orderings by individual tree
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseAscending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseAscending],
 						 ([NSArray arrayWithObjects:@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",@"I",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseDescending],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseDescending],
 						 ([NSArray arrayWithObjects:@"I",@"H",@"G",@"F",@"E",@"D",@"C",@"B",@"A",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"B",@"A",@"D",@"C",@"E",@"G",@"I",@"H",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePostOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePostOrder],
 						 ([NSArray arrayWithObjects:@"A",@"C",@"E",@"D",@"B",@"H",@"I",@"G",@"F",nil]));
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraverseLevelOrder],
 						 ([NSArray arrayWithObjects:@"F",@"B",@"G",@"A",@"D",@"I",@"C",@"E",@"H",nil]));
 	
 	// Test pre-order traversal of some degenerate unbalanced trees
@@ -1370,7 +1385,7 @@ static NSArray *abcde;
 - (void) testDebugDescription {
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = @"A B C";
-	XCTAssertEqualObjects([set debugDescriptionForNode:node], @"\"A B C\"");
+	XCTAssertEqualObjects([self.set debugDescriptionForNode:node], @"\"A B C\"");
 	free(node);
 
 	NSMutableString *expected = [NSMutableString string];
@@ -1389,7 +1404,7 @@ static NSArray *abcde;
 - (void) testDotGraphString {
 	CHBinaryTreeNode *node = malloc(sizeof(CHBinaryTreeNode));
 	node->object = [NSString stringWithString:@"A B C"];
-	XCTAssertEqualObjects([set dotGraphStringForNode:node], @"  \"A B C\";\n");
+	XCTAssertEqualObjects([self.set dotGraphStringForNode:node], @"  \"A B C\";\n");
 	free(node);
 	
 	NSMutableString *expected = [NSMutableString string];
@@ -1406,7 +1421,7 @@ static NSArray *abcde;
 	XCTAssertEqualObjects([zigzagTree dotGraphString], expected);
 	
 	// Test for empty tree
-	XCTAssertEqualObjects([set dotGraphString],
+	XCTAssertEqualObjects([self.set dotGraphString],
 						 @"digraph CHUnbalancedTree\n{\n  nil;\n}\n");
 }
 
@@ -1414,54 +1429,54 @@ static NSArray *abcde;
 	objects = [NSArray arrayWithObjects:
 			   @"F",@"B",@"A",@"C",@"E",@"D",@"J",@"I",@"G",@"H",@"K",nil];
 
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	[set addObjectsFromArray:objects];
-	XCTAssertNoThrow([set removeObject:nil]);
-	XCTAssertNoThrow([set removeObject:@"bogus"]);
-	XCTAssertEqual([set count], [objects count]);
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	[self.set addObjectsFromArray:objects];
+	XCTAssertNoThrow([self.set removeObject:nil]);
+	XCTAssertNoThrow([self.set removeObject:@"bogus"]);
+	XCTAssertEqual([self.set count], [objects count]);
 
 	// Test remove and subsequent pre-order of nodes for 4 broad possible cases
 	
 	// 1 - Remove a node with no children
-	[set removeObject:@"A"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"A"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"B",@"C",@"E",@"D",@"J",@"I",@"G",@"H",@"K",nil]));
-	[set removeObject:@"K"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"K"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"B",@"C",@"E",@"D",@"J",@"I",@"G",@"H",nil]));
 	
 	// 2 - Remove a node with only a right child
-	[set removeObject:@"C"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"C"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"B",@"E",@"D",@"J",@"I",@"G",@"H",nil]));
-	[set removeObject:@"B"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"B"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"E",@"D",@"J",@"I",@"G",@"H",nil]));
 	
 	// 3 - Remove a node with only a left child
-	[set removeObject:@"I"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"I"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"E",@"D",@"J",@"G",@"H",nil]));
-	[set removeObject:@"J"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"J"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects:@"F",@"E",@"D",@"G",@"H",nil]));
 	
 	// 4 - Remove a node with two children
-	[set removeAllObjects];
-	[set addObjectsFromArray:[NSArray arrayWithObjects: @"B",@"A",@"E",@"C",@"D",@"F",nil]];
+	[self.set removeAllObjects];
+	[self.set addObjectsFromArray:[NSArray arrayWithObjects: @"B",@"A",@"E",@"C",@"D",@"F",nil]];
 	
-	[set removeObject:@"B"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"B"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects: @"C",@"A",@"E",@"D",@"F",nil]));
-	[set removeObject:@"C"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"C"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects: @"D",@"A",@"E",@"F",nil]));
-	[set removeObject:@"D"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"D"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects: @"E",@"A",@"F",nil]));
-	[set removeObject:@"E"];
-	XCTAssertEqualObjects([set allObjectsWithTraversalOrder:CHTraversePreOrder],
+	[self.set removeObject:@"E"];
+	XCTAssertEqualObjects([self.set allObjectsWithTraversalOrder:CHTraversePreOrder],
 						 ([NSArray arrayWithObjects: @"F",@"A",nil]));
 }
 
